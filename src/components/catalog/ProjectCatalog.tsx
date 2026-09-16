@@ -2,17 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { Project } from '../../types';
 import { ProjectCard } from './ProjectCard';
 import { DEFAULT_PROJECTS } from '../../data/defaultProjects';
-import { FolderOpen, Layers, Glasses, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { FolderOpen, Layers, Glasses, Sparkles, ChevronDown, ChevronUp, Camera } from 'lucide-react';
 
 interface ProjectCatalogProps {
   onSelectProject: (project: Project, file?: File) => void;
   onEnterVRProject: (project: Project) => void;
+  onEnterARProject: (project: Project) => void;
   onOpenLocalFileModal: () => void;
 }
 
 export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
   onSelectProject,
   onEnterVRProject,
+  onEnterARProject,
   onOpenLocalFileModal,
 }) => {
   const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
@@ -77,30 +79,41 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
             <div>
               <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
                 XR Model Viewer
-                <span className="text-[10px] uppercase font-bold tracking-wider bg-cyan-950 text-cyan-400 border border-cyan-800/60 px-2 py-0.5 rounded-full">
-                  Quest 3S
+                <span className="text-[10px] uppercase font-bold tracking-wider bg-emerald-950 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+                  AR / VR Quest 3S
                 </span>
               </h1>
               <p className="text-xs text-slate-400">
-                Immersive 3D Visualization
+                Immersive 3D & Augmented Reality Visualization
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            {/* Direct Quick AR Entry in Navbar */}
+            <button
+              onClick={() => onEnterARProject(latestProject)}
+              className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-lg shadow-emerald-500/25"
+              title="Entrar en Realidad Aumentada (Passthrough con cámaras reales de Meta Quest 3S)"
+            >
+              <Camera className="w-4 h-4" />
+              <span>👓 Entrar en AR</span>
+            </button>
+
             {/* Direct Quick VR Entry in Navbar */}
             <button
               onClick={() => onEnterVRProject(latestProject)}
-              className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-lg shadow-cyan-500/25"
-              title="Entrar en Realidad Virtual con el módulo más reciente"
+              className="flex items-center gap-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-lg shadow-cyan-500/25"
+              title="Entrar en Realidad Virtual inmersiva completa"
             >
               <Glasses className="w-4 h-4" />
-              <span>🥽 Entrar en VR</span>
+              <span className="hidden sm:inline">🥽 Entrar en VR</span>
+              <span className="sm:hidden">VR</span>
             </button>
 
             <button
               onClick={onOpenLocalFileModal}
-              className="flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide border border-slate-700 transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide border border-slate-700 transition-all cursor-pointer shadow-sm"
               title="Abrir archivo .glb/.gltf desde tu equipo"
             >
               <FolderOpen className="w-4 h-4 text-amber-400" />
@@ -129,26 +142,33 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
       {/* Hero Section */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-800/60 text-cyan-400 text-xs font-semibold mb-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/70 border border-emerald-800/60 text-emerald-400 text-xs font-semibold mb-4">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Módulo Reciente: Facultad de Filosofía y Letras</span>
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
-            Explora proyectos arquitectónicos en VR y PC
+            Explora proyectos arquitectónicos en AR, VR y PC
           </h2>
           <p className="text-sm sm:text-base text-slate-400 leading-relaxed mb-6">
-            Visualiza modelos volumétricos en modo maqueta de mesa o camina a escala 1:1 desde tu navegador o mediante Meta Quest 3S.
+            Visualiza modelos volumétricos sobre tu mesa física con Passthrough (AR), recorre a escala 1:1 en Realidad Virtual, o inspecciona en tu navegador web.
           </p>
 
-          {/* Big Featured Action Button for Quest 3S */}
+          {/* Big Featured Action Buttons for Quest 3S */}
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
+              onClick={() => onEnterARProject(latestProject)}
+              className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white px-5 py-3.5 rounded-2xl text-sm font-bold tracking-wide shadow-xl shadow-emerald-500/25 transition-all cursor-pointer"
+            >
+              <Camera className="w-5 h-5" />
+              <span>👓 Entrar en AR (Cámara Passthrough)</span>
+            </button>
+            <button
               onClick={() => onEnterVRProject(latestProject)}
-              className="flex items-center gap-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white px-6 py-3.5 rounded-2xl text-sm font-bold tracking-wide shadow-xl shadow-cyan-500/25 transition-all cursor-pointer"
+              className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white px-5 py-3.5 rounded-2xl text-sm font-bold tracking-wide shadow-xl shadow-cyan-500/25 transition-all cursor-pointer"
             >
               <Glasses className="w-5 h-5" />
-              <span>🥽 Entrar en VR (Filosofía y Letras)</span>
+              <span>🥽 Entrar en VR Inmersivo</span>
             </button>
             <button
               onClick={() => onSelectProject(latestProject)}
@@ -167,12 +187,22 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
               project={project}
               onSelect={onSelectProject}
               onEnterVR={onEnterVRProject}
+              onEnterAR={onEnterARProject}
             />
           ))}
         </div>
 
         {/* Feature Highlights */}
         <div className="mt-14 border-t border-slate-800/60 pt-8 grid grid-cols-1 md:grid-cols-3 gap-5 text-xs text-slate-400">
+          <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/60">
+            <h4 className="font-semibold text-slate-200 mb-1 flex items-center gap-2">
+              <Camera className="w-4 h-4 text-emerald-400" />
+              Realidad Aumentada (Passthrough)
+            </h4>
+            <p className="leading-relaxed">
+              Activa la cámara a color del Meta Quest 3S para colocar la maqueta volumétrica directamente en tu mesa o sala de estar.
+            </p>
+          </div>
           <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/60">
             <h4 className="font-semibold text-slate-200 mb-1 flex items-center gap-2">
               <Layers className="w-4 h-4 text-cyan-400" />
@@ -189,15 +219,6 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
             </h4>
             <p className="leading-relaxed">
               Agarrar con el Grip, separar manos para escalar (*pinch-to-scale*), rotar con mandos y menú 3D flotante espacial.
-            </p>
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/60">
-            <h4 className="font-semibold text-slate-200 mb-1 flex items-center gap-2">
-              <FolderOpen className="w-4 h-4 text-amber-400" />
-              100% Estático y Privado
-            </h4>
-            <p className="leading-relaxed">
-              Carga tus propios archivos GLB/GLTF de forma local y segura sin enviar datos a ningún servidor externo.
             </p>
           </div>
         </div>

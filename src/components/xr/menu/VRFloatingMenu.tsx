@@ -6,6 +6,7 @@ import type { VRMode, VRLocomotionMode } from '../../../types';
 interface VRFloatingMenuProps {
   vrMode: VRMode;
   locomotionMode: VRLocomotionMode;
+  isAR?: boolean;
   onSetVRMode: (mode: VRMode) => void;
   onSetLocomotionMode: (mode: VRLocomotionMode) => void;
   onResetTransform: () => void;
@@ -84,6 +85,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 export const VRFloatingMenu: React.FC<VRFloatingMenuProps> = ({
   vrMode,
   locomotionMode,
+  isAR = false,
   onSetVRMode,
   onSetLocomotionMode,
   onResetTransform,
@@ -93,80 +95,87 @@ export const VRFloatingMenu: React.FC<VRFloatingMenuProps> = ({
 }) => {
   const { gl } = useThree();
 
-  const handleExitVR = () => {
+  const handleExitXR = () => {
     const session = gl.xr.getSession();
     if (session) {
       session.end();
     }
   };
 
-  // Position the menu floating at eye level, comfortable reaching distance
-  // In front of user: y ~ 1.25, z ~ -0.65 (tilted back slightly for ergonomic viewing)
+  const handleGoHome = () => {
+    handleExitXR();
+    onGoHome();
+  };
+
   return (
     <group position={[0, 1.25, -0.65]} rotation={[-0.15, 0, 0]}>
       {/* Back Panel / Glass Base */}
       <mesh position={[0, 0, -0.015]}>
-        <boxGeometry args={[0.54, 0.42, 0.01]} />
+        <boxGeometry args={[0.54, 0.44, 0.01]} />
         <meshStandardMaterial
           color="#0b0f17"
           roughness={0.6}
           transparent
-          opacity={0.88}
+          opacity={0.92}
         />
       </mesh>
 
-      {/* Header Title */}
+      {/* Header Title with Active Mode Badge */}
       <Text
-        position={[0, 0.165, 0.005]}
-        fontSize={0.028}
-        color="#38bdf8"
+        position={[0, 0.175, 0.005]}
+        fontSize={0.026}
+        color={isAR ? '#34d399' : '#38bdf8'}
         anchorX="center"
         anchorY="middle"
       >
-        XR MODEL VIEWER
+        {isAR ? '👓 MODO AR (CÁMARA REAL)' : '🥽 MODO VR INMERSIVO'}
       </Text>
 
       {/* Row 1: Mode Switch */}
       <MenuButton
-        position={[-0.125, 0.09, 0]}
+        position={[-0.125, 0.095, 0]}
         icon="🏗️"
         label="Maqueta"
         active={vrMode === 'maqueta'}
+        accentColor={isAR ? '#059669' : '#0ea5e9'}
         onClick={() => onSetVRMode('maqueta')}
       />
       <MenuButton
-        position={[0.125, 0.09, 0]}
+        position={[0.125, 0.095, 0]}
         icon="🚪"
         label="Escala 1:1"
         active={vrMode === 'escala1_1'}
+        accentColor={isAR ? '#059669' : '#0ea5e9'}
         onClick={() => onSetVRMode('escala1_1')}
       />
 
       {/* Row 2: Locomotion Selection */}
       <MenuButton
-        position={[-0.125, 0.0, 0]}
+        position={[-0.125, 0.005, 0]}
         icon="📍"
         label="Teleport"
         active={locomotionMode === 'teleport'}
+        accentColor={isAR ? '#059669' : '#0ea5e9'}
         onClick={() => onSetLocomotionMode('teleport')}
       />
       <MenuButton
-        position={[0.125, 0.0, 0]}
+        position={[0.125, 0.005, 0]}
         icon="🚶"
         label="Joystick"
         active={locomotionMode === 'joystick'}
+        accentColor={isAR ? '#059669' : '#0ea5e9'}
         onClick={() => onSetLocomotionMode('joystick')}
       />
 
       {/* Row 3: Actions (Scale / Reset) */}
       <MenuButton
-        position={[-0.125, -0.09, 0]}
+        position={[-0.125, -0.085, 0]}
         icon="↔"
         label={`Escala ${currentScale.toFixed(1)}x`}
         onClick={onCycleScale}
       />
       <MenuButton
-        position={[0.125, -0.09, 0]}
+        position={[0.125, -0.085, 0]}
         icon="🔄"
         label="Reset"
         onClick={onResetTransform}
@@ -177,14 +186,14 @@ export const VRFloatingMenu: React.FC<VRFloatingMenuProps> = ({
         position={[-0.125, -0.175, 0]}
         icon="🏠"
         label="Inicio"
-        onClick={onGoHome}
+        onClick={handleGoHome}
       />
       <MenuButton
         position={[0.125, -0.175, 0]}
         icon="❌"
-        label="Salir VR"
+        label="Salir"
         accentColor="#ef4444"
-        onClick={handleExitVR}
+        onClick={handleExitXR}
       />
     </group>
   );

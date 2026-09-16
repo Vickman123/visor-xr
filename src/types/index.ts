@@ -33,6 +33,10 @@ export type VRLocomotionMode = 'teleport' | 'joystick';
 
 export interface WebXRSupportState {
   isSupported: boolean;
+  isVRSupported: boolean;
+  isARSupported: boolean;
   isChecking: boolean;
   error?: string;
 }
+
+export type XRSessionType = 'vr' | 'ar' | 'desktop';

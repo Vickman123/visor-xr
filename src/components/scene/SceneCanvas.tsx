@@ -45,19 +45,46 @@ const SceneContent: React.FC<{
   frameTrigger,
   resetCameraTrigger,
 }) => {
-  const { camera, gl } = useThree();
+  const { camera, gl, scene: threeScene } = useThree();
   const orbitRef = useRef<OrbitControlsImpl | null>(null);
   const originRef = useRef<THREE.Group | null>(null);
+  const defaultBg = useRef(new THREE.Color('#070a10'));
+  const defaultFog = useRef(new THREE.Fog('#070a10', 40, 180));
 
-  const [isVR, setIsVR] = useState(false);
+  const [isXR, setIsXR] = useState(false);
+  const [isAR, setIsAR] = useState(false);
   const [vrMode, setVrMode] = useState<VRMode>('maqueta');
   const [locomotionMode, setLocomotionMode] = useState<VRLocomotionMode>('teleport');
 
-  // Monitor active WebXR session state
+  // Monitor active WebXR session state and detect AR passthrough camera mode
   useFrame(() => {
-    const sessionPresenting = gl.xr.isPresenting;
-    if (sessionPresenting !== isVR) {
-      setIsVR(sessionPresenting);
+    const session = gl.xr.getSession() as (XRSession & { mode?: string }) | null;
+    const presenting = gl.xr.isPresenting;
+    const isARMode =
+      presenting &&
+      !!session &&
+      (session.mode === 'immersive-ar' ||
+        session.environmentBlendMode === 'alpha-blend' ||
+        session.environmentBlendMode === 'additive');
+
+    if (presenting !== isXR || isARMode !== isAR) {
+      setIsXR(presenting);
+      setIsAR(isARMode);
+    }
+
+    // In AR (Passthrough), background and fog MUST be transparent to show the real camera feed!
+    if (isARMode) {
+      if (threeScene.background !== null) threeScene.background = null;
+      if (threeScene.fog !== null) threeScene.fog = null;
+      gl.setClearColor(0x000000, 0);
+    } else {
+      if (threeScene.background === null) {
+        threeScene.background = defaultBg.current;
+      }
+      if (threeScene.fog === null) {
+        threeScene.fog = defaultFog.current;
+      }
+      gl.setClearColor(defaultBg.current, 1);
     }
   });
 
@@ -82,7 +109,6 @@ const SceneContent: React.FC<{
     }
   };
 
-  // Reset Camera to standard default architectural elevation view
   const resetCamera = () => {
     if (!metrics) {
       camera.position.set(14, 10, 16);
@@ -96,44 +122,32 @@ const SceneContent: React.FC<{
     frameModel();
   };
 
-  // Watch for external trigger buttons from desktop toolbar
   useEffect(() => {
-    if (frameTrigger > 0) {
-      frameModel();
-    }
+    if (frameTrigger > 0) frameModel();
   }, [frameTrigger]);
 
   useEffect(() => {
-    if (resetCameraTrigger > 0) {
-      resetCamera();
-    }
+    if (resetCameraTrigger > 0) resetCamera();
   }, [resetCameraTrigger]);
 
-  // When model loads initially, auto-frame once
   useEffect(() => {
-    if (scene && metrics) {
-      frameModel();
-    }
+    if (scene && metrics) frameModel();
   }, [scene]);
 
-  // Handle VR mode transitions
   const handleSetVRMode = (newMode: VRMode) => {
     setVrMode(newMode);
     if (originRef.current) {
       if (newMode === 'escala1_1') {
-        // Position user at ground level at front threshold of the model
         const depthOffset = metrics ? metrics.dimensions.depth * 0.55 + 2.0 : 6;
         originRef.current.position.set(0, 0, depthOffset);
         originRef.current.rotation.set(0, 0, 0);
       } else {
-        // In maqueta, user stands in front of the diorama table
         originRef.current.position.set(0, 0, 0);
         originRef.current.rotation.set(0, 0, 0);
       }
     }
   };
 
-  // Cycle scale in VR (0.5x -> 1.0x -> 2.0x)
   const handleCycleScale = () => {
     onTransformChange((prev) => {
       const current = prev.scale[0];
@@ -151,26 +165,26 @@ const SceneContent: React.FC<{
   return (
     <>
       <XR store={xrStore}>
-        {/* XR Player Origin (Feet position of the user) */}
+        {/* XR Player Origin */}
         <XROrigin ref={originRef} position={[0, 0, 0]} />
 
         {/* Lighting setup */}
         <Lighting enableShadows />
 
-        {/* Floor and diorama pedestal */}
-        <FloorGrid isVR={isVR} vrMode={vrMode} />
+        {/* Floor and diorama pedestal (Adapts to AR passthrough transparent shadows) */}
+        <FloorGrid isVR={isXR} isAR={isAR} vrMode={vrMode} />
 
         {/* 3D Model with active transform */}
         <ModelContainer
           scene={scene}
           transform={transform}
-          isVR={isVR}
+          isVR={isXR}
           vrMode={vrMode}
           recommendedScale={metrics?.recommendedScale}
         />
 
-        {/* VR Interactivity (Meta Quest 3S) */}
-        {isVR && (
+        {/* XR Interactivity (Meta Quest 3S) */}
+        {isXR && (
           <>
             {/* Grip & Two-Hand Manipulation */}
             <TwoHandManipulator
@@ -197,6 +211,7 @@ const SceneContent: React.FC<{
             <VRFloatingMenu
               vrMode={vrMode}
               locomotionMode={locomotionMode}
+              isAR={isAR}
               onSetVRMode={handleSetVRMode}
               onSetLocomotionMode={setLocomotionMode}
               onResetTransform={onResetTransform}
@@ -208,8 +223,8 @@ const SceneContent: React.FC<{
         )}
       </XR>
 
-      {/* Desktop Orbit Controls (Active when not presenting in VR) */}
-      {!isVR && (
+      {/* Desktop Orbit Controls */}
+      {!isXR && (
         <OrbitControls
           ref={orbitRef}
           makeDefault
@@ -217,7 +232,7 @@ const SceneContent: React.FC<{
           dampingFactor={0.06}
           minDistance={1.0}
           maxDistance={120}
-          maxPolarAngle={Math.PI / 2 + 0.05} // Prevent camera going completely under ground
+          maxPolarAngle={Math.PI / 2 + 0.05}
         />
       )}
     </>
@@ -231,13 +246,11 @@ export const SceneCanvas: React.FC<SceneCanvasProps> = (props) => {
       camera={{ position: [14, 11, 16], fov: 45, near: 0.1, far: 250 }}
       gl={{
         antialias: true,
-        alpha: false,
+        alpha: true, // Required for WebXR AR camera passthrough
         powerPreference: 'high-performance',
       }}
-      className="w-full h-full bg-slate-950"
+      className="w-full h-full bg-transparent"
     >
-      <color attach="background" args={['#070a10']} />
-      <fog attach="fog" args={['#070a10', 40, 180]} />
       <SceneContent {...props} />
     </Canvas>
   );

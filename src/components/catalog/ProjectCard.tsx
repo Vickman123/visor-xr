@@ -1,17 +1,19 @@
 import React from 'react';
 import type { Project } from '../../types';
-import { ArrowRight, Box, Glasses } from 'lucide-react';
+import { ArrowRight, Box, Glasses, Camera } from 'lucide-react';
 
 interface ProjectCardProps {
   project: Project;
   onSelect: (project: Project) => void;
   onEnterVR?: (project: Project) => void;
+  onEnterAR?: (project: Project) => void;
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
   project,
   onSelect,
   onEnterVR,
+  onEnterAR,
 }) => {
   const baseUrl = import.meta.env.BASE_URL || '/';
   const resolvedThumbnail =
@@ -59,7 +61,22 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         </div>
 
         {/* Action Buttons for Meta Quest and PC */}
-        <div className="flex flex-col sm:flex-row items-stretch gap-2.5 pt-2 border-t border-slate-800/80">
+        <div className="flex flex-col sm:flex-row items-stretch gap-2 pt-2 border-t border-slate-800/80">
+          {/* Direct AR Entry Button */}
+          {onEnterAR && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEnterAR(project);
+              }}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white py-2.5 px-3 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-md shadow-emerald-500/20"
+              title="Entrar en Realidad Aumentada (Passthrough de Meta Quest 3S)"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>AR</span>
+            </button>
+          )}
+
           {/* Direct VR Entry Button */}
           {onEnterVR && (
             <button
@@ -67,11 +84,11 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                 e.stopPropagation();
                 onEnterVR(project);
               }}
-              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white py-3 px-4 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-lg shadow-cyan-500/20"
-              title="Entrar directamente en VR con este modelo"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white py-2.5 px-3 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-md shadow-cyan-500/20"
+              title="Entrar directamente en VR inmersiva"
             >
-              <Glasses className="w-4 h-4" />
-              <span>Entrar en VR</span>
+              <Glasses className="w-3.5 h-3.5" />
+              <span>VR</span>
             </button>
           )}
 
@@ -81,11 +98,11 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               e.stopPropagation();
               onSelect(project);
             }}
-            className="flex-1 flex items-center justify-center gap-2 bg-slate-800/90 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white py-3 px-4 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer border border-slate-700/60"
-            title="Abrir en visor 3D"
+            className="flex-1 flex items-center justify-center gap-1 bg-slate-800/90 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer border border-slate-700/60"
+            title="Abrir en visor 3D para PC"
           >
-            <span>Ver en 3D</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>3D PC</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

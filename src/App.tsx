@@ -18,7 +18,7 @@ export const App: React.FC = () => {
     setIsCatalogOpen(false);
   };
 
-  // Direct 1-click WebXR trigger for Meta Quest
+  // Direct 1-click WebXR trigger for Meta Quest VR
   const handleEnterVRProject = async (project: Project) => {
     setActiveProject(project);
     setLocalFile(null);
@@ -26,7 +26,19 @@ export const App: React.FC = () => {
     try {
       await xrStore.enterVR();
     } catch (err) {
-      console.warn('Error launching WebXR session:', err);
+      console.warn('Error launching WebXR VR session:', err);
+    }
+  };
+
+  // Direct 1-click WebXR AR trigger (Passthrough cameras) for Meta Quest
+  const handleEnterARProject = async (project: Project) => {
+    setActiveProject(project);
+    setLocalFile(null);
+    setIsCatalogOpen(false);
+    try {
+      await xrStore.enterAR();
+    } catch (err) {
+      console.warn('Error launching WebXR AR session:', err);
     }
   };
 
@@ -50,6 +62,7 @@ export const App: React.FC = () => {
           <ProjectCatalog
             onSelectProject={handleSelectProject}
             onEnterVRProject={handleEnterVRProject}
+            onEnterARProject={handleEnterARProject}
             onOpenLocalFileModal={() => setIsLocalModalOpen(true)}
           />
         </div>

@@ -5,12 +5,14 @@ import * as THREE from 'three';
 
 interface FloorGridProps {
   isVR?: boolean;
+  isAR?: boolean;
   vrMode?: 'maqueta' | 'escala1_1';
   onTeleport?: (point: THREE.Vector3) => void;
 }
 
 export const FloorGrid: React.FC<FloorGridProps> = ({
   isVR = false,
+  isAR = false,
   vrMode = 'maqueta',
   onTeleport,
 }) => {
@@ -18,32 +20,34 @@ export const FloorGrid: React.FC<FloorGridProps> = ({
 
   return (
     <group position={[0, -0.01, 0]}>
-      {/* Subtle floor grid for architectural context */}
-      <Grid
-        position={[0, 0, 0]}
-        args={[80, 80]}
-        cellSize={1}
-        cellThickness={0.6}
-        cellColor="#4b5563"
-        sectionSize={5}
-        sectionThickness={1.2}
-        sectionColor="#9ca3af"
-        fadeDistance={40}
-        fadeStrength={1.5}
-        infiniteGrid
-      />
+      {/* Subtle floor grid (Only shown in PC desktop and fully immersive VR, hidden in AR passthrough) */}
+      {!isAR && (
+        <Grid
+          position={[0, 0, 0]}
+          args={[80, 80]}
+          cellSize={1}
+          cellThickness={0.6}
+          cellColor="#4b5563"
+          sectionSize={5}
+          sectionThickness={1.2}
+          sectionColor="#9ca3af"
+          fadeDistance={40}
+          fadeStrength={1.5}
+          infiniteGrid
+        />
+      )}
 
-      {/* Shadow-catching invisible ground plane */}
+      {/* Shadow-catching ground plane (Casts shadows on real-world floor/table in AR) */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.005, 0]}
         receiveShadow
       >
         <planeGeometry args={[100, 100]} />
-        <shadowMaterial opacity={0.25} />
+        <shadowMaterial opacity={isAR ? 0.45 : 0.25} />
       </mesh>
 
-      {/* In VR Escala 1:1, provide TeleportTarget surface for locomotion */}
+      {/* In VR/AR Escala 1:1, provide TeleportTarget surface for locomotion */}
       {isScale1to1 && (
         <TeleportTarget
           onTeleport={(target) => {
@@ -63,8 +67,8 @@ export const FloorGrid: React.FC<FloorGridProps> = ({
         </TeleportTarget>
       )}
 
-      {/* Tabletop diorama pedestal in VR Modo Maqueta */}
-      {isVR && vrMode === 'maqueta' && (
+      {/* Tabletop diorama pedestal in immersive VR Modo Maqueta (hidden in AR so model sits directly on real table) */}
+      {isVR && !isAR && vrMode === 'maqueta' && (
         <group position={[0, 0, -0.8]}>
           <mesh position={[0, 0.45, 0]} receiveShadow>
             <cylinderGeometry args={[0.8, 0.85, 0.9, 32]} />
