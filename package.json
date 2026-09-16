@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "deploy": "VITE_BASE_PATH=/visor-xr/ vite build && gh-pages -d dist --dotfiles",
     "generate-models": "node scripts/generate-sample-models.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
@@ -27,6 +28,7 @@
     "@types/react-dom": "~19.2.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "gh-pages": "^6.3.0",
     "oxlint": "^1.81.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
