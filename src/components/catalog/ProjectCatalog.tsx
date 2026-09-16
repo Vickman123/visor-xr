@@ -1,64 +1,84 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Project } from '../../types';
 import { ProjectCard } from './ProjectCard';
-import { FolderOpen, Layers, Glasses, Sparkles, RefreshCw } from 'lucide-react';
+import { DEFAULT_PROJECTS } from '../../data/defaultProjects';
+import { FolderOpen, Layers, Glasses, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ProjectCatalogProps {
   onSelectProject: (project: Project, file?: File) => void;
+  onEnterVRProject: (project: Project) => void;
   onOpenLocalFileModal: () => void;
 }
 
 export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
   onSelectProject,
+  onEnterVRProject,
   onOpenLocalFileModal,
 }) => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const fetchProjects = () => {
-    setIsLoading(true);
-    setError(null);
-
+  useEffect(() => {
     const baseUrl = import.meta.env.BASE_URL || '/';
     const jsonUrl = `${baseUrl}${baseUrl.endsWith('/') ? '' : '/'}projects.json`;
 
     fetch(jsonUrl)
       .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         return res.json();
       })
       .then((data: Project[]) => {
-        setProjects(data);
-        setIsLoading(false);
+        if (Array.isArray(data) && data.length > 0) {
+          setProjects(data);
+        }
       })
       .catch((err) => {
-        console.error('Error fetching projects:', err);
-        setError('No se pudo cargar el catálogo de proyectos. Verifica projects.json.');
-        setIsLoading(false);
+        console.warn('Using default projects fallback:', err);
       });
-  };
-
-  useEffect(() => {
-    fetchProjects();
   }, []);
 
+  const scrollToCard = (id: string) => {
+    const el = document.getElementById(`card-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const scrollDown = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollBy({ top: 400, behavior: 'smooth' });
+    } else {
+      window.scrollBy({ top: 400, behavior: 'smooth' });
+    }
+  };
+
+  const scrollUp = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollBy({ top: -400, behavior: 'smooth' });
+    } else {
+      window.scrollBy({ top: -400, behavior: 'smooth' });
+    }
+  };
+
+  const latestProject = projects[0] || DEFAULT_PROJECTS[0];
+
   return (
-    <div className="w-full min-h-screen overflow-y-auto bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-white">
+    <div
+      ref={containerRef}
+      className="w-full min-h-screen overflow-y-auto bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-white"
+    >
       {/* Top Navbar */}
-      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-xl sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <header className="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white">
               <Glasses className="w-5 h-5" />
             </div>
             <div>
               <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
                 XR Model Viewer
-                <span className="text-[10px] uppercase font-semibold tracking-wider bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 px-2 py-0.5 rounded-full">
-                  Meta Quest 3S Ready
+                <span className="text-[10px] uppercase font-bold tracking-wider bg-cyan-950 text-cyan-400 border border-cyan-800/60 px-2 py-0.5 rounded-full">
+                  Quest 3S
                 </span>
               </h1>
               <p className="text-xs text-slate-400">
@@ -67,89 +87,117 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onOpenLocalFileModal}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide border border-slate-700 transition-all cursor-pointer shadow-sm hover:border-cyan-500/50"
-          >
-            <FolderOpen className="w-4 h-4 text-amber-400" />
-            <span>📂 Abrir archivo local</span>
-          </button>
+          <div className="flex items-center gap-2.5">
+            {/* Direct Quick VR Entry in Navbar */}
+            <button
+              onClick={() => onEnterVRProject(latestProject)}
+              className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-lg shadow-cyan-500/25"
+              title="Entrar en Realidad Virtual con el módulo más reciente"
+            >
+              <Glasses className="w-4 h-4" />
+              <span>🥽 Entrar en VR</span>
+            </button>
+
+            <button
+              onClick={onOpenLocalFileModal}
+              className="flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide border border-slate-700 transition-all cursor-pointer shadow-sm"
+              title="Abrir archivo .glb/.gltf desde tu equipo"
+            >
+              <FolderOpen className="w-4 h-4 text-amber-400" />
+              <span className="hidden sm:inline">Abrir local</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Navigation Tabs for Meta Quest Laser Pointer */}
+        <div className="border-t border-slate-800/60 bg-slate-950/40 px-4 py-2 overflow-x-auto flex items-center gap-2 text-xs">
+          <span className="text-slate-400 text-[11px] font-medium mr-1 shrink-0">
+            Ir a:
+          </span>
+          {projects.map((proj) => (
+            <button
+              key={proj.id}
+              onClick={() => scrollToCard(proj.id)}
+              className="shrink-0 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 hover:text-cyan-300 px-3 py-1.5 rounded-lg transition-all cursor-pointer text-xs"
+            >
+              {proj.name}
+            </button>
+          ))}
         </div>
       </header>
 
-      {/* Hero Header */}
-      <main className="max-w-7xl mx-auto px-6 py-12 flex-1 w-full">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/50 text-cyan-400 text-xs font-medium mb-4">
+      {/* Hero Section */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-800/60 text-cyan-400 text-xs font-semibold mb-4">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Biblioteca y Visor WebXR Profesional</span>
+            <span>Módulo Reciente: Facultad de Filosofía y Letras</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
+
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
             Explora proyectos arquitectónicos en VR y PC
           </h2>
-          <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
-            Visualiza modelos volumétricos en modo maqueta o camina a escala 1:1 desde tu navegador de escritorio o mediante Meta Quest 3S con WebXR.
+          <p className="text-sm sm:text-base text-slate-400 leading-relaxed mb-6">
+            Visualiza modelos volumétricos en modo maqueta de mesa o camina a escala 1:1 desde tu navegador o mediante Meta Quest 3S.
           </p>
-        </div>
 
-        {/* Dynamic Project Grid */}
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4" />
-            <span className="text-sm font-medium text-slate-400">
-              Cargando biblioteca de proyectos...
-            </span>
-          </div>
-        ) : error ? (
-          <div className="bg-red-950/40 border border-red-800/60 rounded-2xl p-6 text-center max-w-md mx-auto">
-            <p className="text-sm text-red-300 mb-4">{error}</p>
+          {/* Big Featured Action Button for Quest 3S */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <button
-              onClick={fetchProjects}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-red-900/60 hover:bg-red-900 text-red-100 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              onClick={() => onEnterVRProject(latestProject)}
+              className="flex items-center gap-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white px-6 py-3.5 rounded-2xl text-sm font-bold tracking-wide shadow-xl shadow-cyan-500/25 transition-all cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Reintentar
+              <Glasses className="w-5 h-5" />
+              <span>🥽 Entrar en VR (Filosofía y Letras)</span>
+            </button>
+            <button
+              onClick={() => onSelectProject(latestProject)}
+              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white px-5 py-3.5 rounded-2xl text-sm font-semibold border border-slate-700/80 transition-all cursor-pointer"
+            >
+              <span>Ver en 3D (PC)</span>
             </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onSelect={(proj) => onSelectProject(proj)}
-              />
-            ))}
-          </div>
-        )}
+        </div>
 
-        {/* Feature Highlights Banner */}
-        <div className="mt-16 border-t border-slate-800/60 pt-10 grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-400">
-          <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800/50">
+        {/* Project Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {projects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onSelect={onSelectProject}
+              onEnterVR={onEnterVRProject}
+            />
+          ))}
+        </div>
+
+        {/* Feature Highlights */}
+        <div className="mt-14 border-t border-slate-800/60 pt-8 grid grid-cols-1 md:grid-cols-3 gap-5 text-xs text-slate-400">
+          <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/60">
             <h4 className="font-semibold text-slate-200 mb-1 flex items-center gap-2">
               <Layers className="w-4 h-4 text-cyan-400" />
               Modo Maqueta & Escala 1:1
             </h4>
             <p className="leading-relaxed">
-              Examina volumetrías en escala de mesa o ingresa al interior para recorrer la estructura a escala real.
+              Examina volumetrías en escala de mesa o ingresa al interior para recorrer la estructura a escala real con teleport o joystick.
             </p>
           </div>
-          <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800/50">
+          <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/60">
             <h4 className="font-semibold text-slate-200 mb-1 flex items-center gap-2">
               <Glasses className="w-4 h-4 text-blue-400" />
               Optimizado para Quest 3S
             </h4>
             <p className="leading-relaxed">
-              Teleportación de bajo impacto, locomoción con joystick, agarre bimanual y menú 3D flotante espacial.
+              Agarrar con el Grip, separar manos para escalar (*pinch-to-scale*), rotar con mandos y menú 3D flotante espacial.
             </p>
           </div>
-          <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800/50">
+          <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/60">
             <h4 className="font-semibold text-slate-200 mb-1 flex items-center gap-2">
               <FolderOpen className="w-4 h-4 text-amber-400" />
               100% Estático y Privado
             </h4>
             <p className="leading-relaxed">
-              Carga tus propios archivos GLB/GLTF de forma local y segura sin enviar ningún archivo a servidores externos.
+              Carga tus propios archivos GLB/GLTF de forma local y segura sin enviar datos a ningún servidor externo.
             </p>
           </div>
         </div>
@@ -159,6 +207,24 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
       <footer className="border-t border-slate-800/60 py-6 text-center text-xs text-slate-500">
         XR Model Viewer • Immersive 3D Visualization
       </footer>
+
+      {/* Floating Scroll Buttons for Meta Quest Laser Pointer Navigation */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-2 pointer-events-auto">
+        <button
+          onClick={scrollUp}
+          className="w-12 h-12 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-cyan-500 text-slate-200 hover:text-white flex items-center justify-center shadow-2xl backdrop-blur-md transition-all active:scale-90 cursor-pointer"
+          title="Subir página"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </button>
+        <button
+          onClick={scrollDown}
+          className="w-12 h-12 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-cyan-500 text-slate-200 hover:text-white flex items-center justify-center shadow-2xl backdrop-blur-md transition-all active:scale-90 cursor-pointer"
+          title="Bajar página"
+        >
+          <ChevronDown className="w-6 h-6" />
+        </button>
+      </div>
     </div>
   );
 };
