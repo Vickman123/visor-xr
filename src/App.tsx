@@ -25,14 +25,16 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-screen overflow-hidden bg-slate-950 font-sans text-slate-100">
+    <div className="w-full min-h-screen bg-slate-950 font-sans text-slate-100">
       {selectedProject ? (
-        <DesktopViewer
-          project={selectedProject}
-          localFile={localFile}
-          onBackToCatalog={handleBackToCatalog}
-          onOpenLocalFileModal={() => setIsLocalModalOpen(true)}
-        />
+        <div className="fixed inset-0 overflow-hidden bg-slate-950 z-10">
+          <DesktopViewer
+            project={selectedProject}
+            localFile={localFile}
+            onBackToCatalog={handleBackToCatalog}
+            onOpenLocalFileModal={() => setIsLocalModalOpen(true)}
+          />
+        </div>
       ) : (
         <ProjectCatalog
           onSelectProject={handleSelectProject}

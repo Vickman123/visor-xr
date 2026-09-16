@@ -46,7 +46,7 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-white">
+    <div className="w-full min-h-screen overflow-y-auto bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-white">
       {/* Top Navbar */}
       <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-xl sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">

@@ -14,7 +14,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onSelect }) =
     : `${baseUrl}${project.thumbnail.startsWith('/') ? project.thumbnail.slice(1) : project.thumbnail}`;
 
   return (
-    <div className="group bg-slate-900/70 border border-slate-800 hover:border-cyan-500/50 rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-cyan-500/10 flex flex-col">
+    <div
+      onClick={() => onSelect(project)}
+      className="group bg-slate-900/70 border border-slate-800 hover:border-cyan-500/50 rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-cyan-500/10 flex flex-col cursor-pointer active:scale-[0.99] focus-within:ring-2 focus-within:ring-cyan-400"
+    >
       {/* Thumbnail */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">
         <img
@@ -46,11 +49,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onSelect }) =
 
         {/* Action Button */}
         <button
-          onClick={() => onSelect(project)}
-          className="mt-5 w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-cyan-600 text-slate-200 hover:text-white py-2.5 px-4 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer group/btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect(project);
+          }}
+          className="mt-5 w-full flex items-center justify-center gap-2 bg-slate-800 group-hover:bg-cyan-600 text-slate-200 group-hover:text-white py-3 px-5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer shadow-md"
         >
           <span>Abrir proyecto</span>
-          <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
         </button>
       </div>
     </div>
