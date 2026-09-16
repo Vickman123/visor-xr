@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import type { Project } from './types';
-import { DEFAULT_PROJECTS } from './data/defaultProjects';
 import { ProjectCatalog } from './components/catalog/ProjectCatalog';
 import { DesktopViewer } from './components/desktop/DesktopViewer';
 import { LocalFileModal } from './components/catalog/LocalFileModal';
 import { xrStore } from './components/xr/xrStore';
 
 export const App: React.FC = () => {
-  const [activeProject, setActiveProject] = useState<Project>(DEFAULT_PROJECTS[0]);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isLocalModalOpen, setIsLocalModalOpen] = useState(false);
@@ -33,6 +32,8 @@ export const App: React.FC = () => {
 
   const handleBackToCatalog = () => {
     setIsCatalogOpen(true);
+    setActiveProject(null);
+    setLocalFile(null);
   };
 
   const handleLocalFileSelect = (project: Project, file: File) => {
@@ -42,27 +43,27 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 font-sans text-slate-100 relative">
-      {/* 3D Canvas Viewport (Permanently active so WebXR is always primed and ready) */}
-      <div className={`fixed inset-0 ${isCatalogOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 z-10'}`}>
-        <DesktopViewer
-          project={activeProject}
-          localFile={localFile}
-          onBackToCatalog={handleBackToCatalog}
-          onOpenLocalFileModal={() => setIsLocalModalOpen(true)}
-        />
-      </div>
-
-      {/* Catalog Screen (Scrollable, with Meta Quest laser navigation & direct VR buttons) */}
-      {isCatalogOpen && (
-        <div className="relative z-20 w-full min-h-screen overflow-y-auto">
+    <div className="w-full min-h-screen bg-slate-950 font-sans text-slate-100">
+      {/* Catalog View - Lightweight, fast, full scrolling with zero 3D overhead */}
+      {isCatalogOpen ? (
+        <div className="w-full min-h-screen overflow-y-auto">
           <ProjectCatalog
             onSelectProject={handleSelectProject}
             onEnterVRProject={handleEnterVRProject}
             onOpenLocalFileModal={() => setIsLocalModalOpen(true)}
           />
         </div>
-      )}
+      ) : activeProject ? (
+        /* 3D Viewport - Only loads model and runs WebGL when project is chosen */
+        <div className="fixed inset-0 overflow-hidden bg-slate-950 z-10">
+          <DesktopViewer
+            project={activeProject}
+            localFile={localFile}
+            onBackToCatalog={handleBackToCatalog}
+            onOpenLocalFileModal={() => setIsLocalModalOpen(true)}
+          />
+        </div>
+      ) : null}
 
       {/* Independent Local File Selector Modal */}
       <LocalFileModal
