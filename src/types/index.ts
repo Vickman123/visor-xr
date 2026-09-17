@@ -4,6 +4,7 @@ export interface Project {
   description: string;
   thumbnail: string;
   model: string;
+  category?: string;
   isLocal?: boolean;
 }
 

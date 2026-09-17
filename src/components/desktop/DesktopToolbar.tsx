@@ -8,6 +8,7 @@ import {
   FolderOpen,
   ChevronUp,
   ChevronDown,
+  Camera,
 } from 'lucide-react';
 
 interface DesktopToolbarProps {
@@ -16,6 +17,7 @@ interface DesktopToolbarProps {
   onFrameModel: () => void;
   onResetTransform: () => void;
   onOpenLocalFile: () => void;
+  onTakeSnapshot?: () => void;
   transform: ModelTransform;
   onTransformChange: (updater: (prev: ModelTransform) => ModelTransform) => void;
 }
@@ -26,6 +28,7 @@ export const DesktopToolbar: React.FC<DesktopToolbarProps> = ({
   onFrameModel,
   onResetTransform,
   onOpenLocalFile,
+  onTakeSnapshot,
   transform,
   onTransformChange,
 }) => {
@@ -156,6 +159,17 @@ export const DesktopToolbar: React.FC<DesktopToolbarProps> = ({
           <Maximize className="w-4 h-4 text-slate-400" />
           <span>Ajustar Modelo</span>
         </button>
+
+        {onTakeSnapshot && (
+          <button
+            onClick={onTakeSnapshot}
+            className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-amber-500/80 to-amber-600/80 hover:from-amber-400 hover:to-amber-500 active:scale-95 px-3 py-2 rounded-xl transition-all cursor-pointer shadow-sm shadow-amber-500/20"
+            title="Tomar foto / captura realista del modelo y guardarla como portada"
+          >
+            <Camera className="w-4 h-4" />
+            <span>📸 Capturar Foto</span>
+          </button>
+        )}
 
         <button
           onClick={() => setShowTransformPanel(!showTransformPanel)}

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { Project, ModelTransform } from '../../types';
 import { useModelLoader } from '../../hooks/useModelLoader';
 import { SceneCanvas } from '../scene/SceneCanvas';
 import { MetricsHUD } from './MetricsHUD';
 import { WebXRButton } from './WebXRButton';
 import { DesktopToolbar } from './DesktopToolbar';
+import { SnapshotModal } from './SnapshotModal';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ErrorBanner } from '../common/ErrorBanner';
 
@@ -13,6 +14,7 @@ interface DesktopViewerProps {
   localFile: File | null;
   onBackToCatalog: () => void;
   onOpenLocalFileModal: () => void;
+  onUpdateThumbnail?: (projectId: string, newThumb: string) => void;
 }
 
 const INITIAL_TRANSFORM: ModelTransform = {
@@ -26,6 +28,7 @@ export const DesktopViewer: React.FC<DesktopViewerProps> = ({
   localFile,
   onBackToCatalog,
   onOpenLocalFileModal,
+  onUpdateThumbnail,
 }) => {
   // Source is either the local File object or the model path string
   const modelSource = localFile ? localFile : project.model;
@@ -34,6 +37,11 @@ export const DesktopViewer: React.FC<DesktopViewerProps> = ({
   const [transform, setTransform] = useState<ModelTransform>(INITIAL_TRANSFORM);
   const [frameTrigger, setFrameTrigger] = useState<number>(0);
   const [resetCameraTrigger, setResetCameraTrigger] = useState<number>(0);
+
+  // Snapshot modal state
+  const [snapshotImage, setSnapshotImage] = useState<string | null>(null);
+  const [isSnapshotOpen, setIsSnapshotOpen] = useState(false);
+  const snapshotTakerRef = useRef<(() => string | null) | null>(null);
 
   const handleResetTransform = () => {
     setTransform(INITIAL_TRANSFORM);
@@ -45,6 +53,22 @@ export const DesktopViewer: React.FC<DesktopViewerProps> = ({
 
   const handleResetCamera = () => {
     setResetCameraTrigger((prev) => prev + 1);
+  };
+
+  const handleTakeSnapshot = () => {
+    if (snapshotTakerRef.current) {
+      const dataUrl = snapshotTakerRef.current();
+      if (dataUrl) {
+        setSnapshotImage(dataUrl);
+        setIsSnapshotOpen(true);
+      }
+    }
+  };
+
+  const handleSetCover = (newThumb: string) => {
+    if (onUpdateThumbnail) {
+      onUpdateThumbnail(project.id, newThumb);
+    }
   };
 
   return (
@@ -66,6 +90,9 @@ export const DesktopViewer: React.FC<DesktopViewerProps> = ({
         onGoHome={onBackToCatalog}
         frameTrigger={frameTrigger}
         resetCameraTrigger={resetCameraTrigger}
+        onRegisterSnapshotTaker={(taker) => {
+          snapshotTakerRef.current = taker;
+        }}
       />
 
       {/* Interactive Bottom Toolbar for Desktop Controls */}
@@ -75,6 +102,7 @@ export const DesktopViewer: React.FC<DesktopViewerProps> = ({
         onFrameModel={handleFrameModel}
         onResetTransform={handleResetTransform}
         onOpenLocalFile={onOpenLocalFileModal}
+        onTakeSnapshot={handleTakeSnapshot}
         transform={transform}
         onTransformChange={setTransform}
       />
@@ -84,6 +112,15 @@ export const DesktopViewer: React.FC<DesktopViewerProps> = ({
 
       {/* Error Fallback Banner */}
       {error && <ErrorBanner message={error} onBack={onBackToCatalog} />}
+
+      {/* Real-time Snapshot / Photo Modal */}
+      <SnapshotModal
+        isOpen={isSnapshotOpen}
+        imageSrc={snapshotImage}
+        project={project}
+        onClose={() => setIsSnapshotOpen(false)}
+        onSetAsCover={handleSetCover}
+      />
     </div>
   );
 };

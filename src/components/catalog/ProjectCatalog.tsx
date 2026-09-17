@@ -1,8 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { Project } from '../../types';
 import { ProjectCard } from './ProjectCard';
+import { QuickViewModal } from './QuickViewModal';
 import { DEFAULT_PROJECTS } from '../../data/defaultProjects';
-import { FolderOpen, Layers, Glasses, Sparkles, ChevronDown, ChevronUp, Camera } from 'lucide-react';
+import {
+  FolderOpen,
+  Glasses,
+  Camera,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  SlidersHorizontal,
+  Box,
+} from 'lucide-react';
 
 interface ProjectCatalogProps {
   onSelectProject: (project: Project, file?: File) => void;
@@ -18,6 +29,10 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
   onOpenLocalFileModal,
 }) => {
   const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [quickViewProject, setQuickViewProject] = useState<Project | null>(null);
+  const [thumbVersion, setThumbVersion] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,12 +54,24 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
       });
   }, []);
 
-  const scrollToCard = (id: string) => {
-    const el = document.getElementById(`card-${id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  };
+  const categories = useMemo(() => {
+    const set = new Set<string>(['Todos']);
+    projects.forEach((p) => {
+      if (p.category) set.add(p.category);
+    });
+    return Array.from(set);
+  }, [projects]);
+
+  const filteredProjects = useMemo(() => {
+    return projects.filter((p) => {
+      const matchCat = selectedCategory === 'Todos' || p.category === selectedCategory;
+      const matchQuery =
+        searchQuery.trim() === '' ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchCat && matchQuery;
+    });
+  }, [projects, selectedCategory, searchQuery]);
 
   const scrollDown = () => {
     if (containerRef.current) {
@@ -64,186 +91,214 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
 
   const latestProject = projects[0] || DEFAULT_PROJECTS[0];
 
+  const handleUpdateThumbnail = () => {
+    setThumbVersion((v) => v + 1);
+  };
+
   return (
     <div
       ref={containerRef}
+      key={thumbVersion}
       className="w-full min-h-screen overflow-y-auto bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-white"
     >
-      {/* Top Navbar */}
-      <header className="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      {/* Sleek Minimalist Top Navbar */}
+      <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+          {/* Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white">
-              <Glasses className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20">
+              <Box className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
-                XR Model Viewer
-                <span className="text-[10px] uppercase font-bold tracking-wider bg-emerald-950 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full">
-                  AR / VR Quest 3S
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold tracking-tight text-white">
+                  XR MODEL VIEWER
                 </span>
-              </h1>
-              <p className="text-xs text-slate-400">
-                Immersive 3D & Augmented Reality Visualization
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] uppercase font-semibold tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Quest 3S & WebXR
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Visualizador Arquitectónico Espacial
               </p>
             </div>
           </div>
 
+          {/* Quick Actions Right */}
           <div className="flex items-center gap-2">
-            {/* Direct Quick AR Entry in Navbar */}
+            {/* Quick AR launch for latest model */}
             <button
               onClick={() => onEnterARProject(latestProject)}
-              className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-lg shadow-emerald-500/25"
-              title="Entrar en Realidad Aumentada (Passthrough con cámaras reales de Meta Quest 3S)"
+              className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white px-3.5 py-2 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-md shadow-emerald-500/20"
+              title="Entrar en AR (Cámaras Passthrough) con el módulo más reciente"
             >
-              <Camera className="w-4 h-4" />
-              <span>👓 Entrar en AR</span>
+              <Camera className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">👓 Entrar en AR</span>
+              <span className="sm:hidden">AR</span>
             </button>
 
-            {/* Direct Quick VR Entry in Navbar */}
+            {/* Quick VR launch for latest model */}
             <button
               onClick={() => onEnterVRProject(latestProject)}
-              className="flex items-center gap-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-lg shadow-cyan-500/25"
-              title="Entrar en Realidad Virtual inmersiva completa"
+              className="flex items-center gap-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white px-3.5 py-2 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-md shadow-cyan-500/20"
+              title="Entrar en VR inmersiva"
             >
-              <Glasses className="w-4 h-4" />
+              <Glasses className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">🥽 Entrar en VR</span>
               <span className="sm:hidden">VR</span>
             </button>
 
             <button
               onClick={onOpenLocalFileModal}
-              className="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide border border-slate-700 transition-all cursor-pointer shadow-sm"
-              title="Abrir archivo .glb/.gltf desde tu equipo"
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold tracking-wide border border-slate-700/80 transition-all cursor-pointer"
+              title="Cargar archivo .glb local"
             >
-              <FolderOpen className="w-4 h-4 text-amber-400" />
-              <span className="hidden sm:inline">Abrir local</span>
+              <FolderOpen className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden md:inline">Cargar .GLB</span>
             </button>
           </div>
-        </div>
-
-        {/* Quick Navigation Tabs for Meta Quest Laser Pointer */}
-        <div className="border-t border-slate-800/60 bg-slate-950/40 px-4 py-2 overflow-x-auto flex items-center gap-2 text-xs">
-          <span className="text-slate-400 text-[11px] font-medium mr-1 shrink-0">
-            Ir a:
-          </span>
-          {projects.map((proj) => (
-            <button
-              key={proj.id}
-              onClick={() => scrollToCard(proj.id)}
-              className="shrink-0 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 hover:text-cyan-300 px-3 py-1.5 rounded-lg transition-all cursor-pointer text-xs"
-            >
-              {proj.name}
-            </button>
-          ))}
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
-        <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/70 border border-emerald-800/60 text-emerald-400 text-xs font-semibold mb-4">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Módulo Reciente: Facultad de Filosofía y Letras</span>
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 flex-1 w-full flex flex-col gap-8">
+        {/* Minimalist Hero Banner */}
+        <section className="relative overflow-hidden rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-900/90 via-slate-900/50 to-slate-950 p-6 sm:p-8 backdrop-blur-xl">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/70 border border-slate-700/60 text-slate-300 text-xs font-medium mb-3">
+                <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                <span>Módulo destacado: Facultad de Filosofía y Letras</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
+                Explora arquitectura en Realidad Mixta
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                Coloca maquetas sobre tu mesa real con Passthrough (AR), recorre edificios a escala 1:1 en VR, o captura fotos realistas en 3D para tu catálogo.
+              </p>
+            </div>
+
+            {/* Quick Hero Buttons */}
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <button
+                onClick={() => setQuickViewProject(latestProject)}
+                className="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white px-4 py-2.5 rounded-xl text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
+              >
+                <Eye className="w-4 h-4 text-cyan-400" />
+                <span>Vista Rápida 360°</span>
+              </button>
+              <button
+                onClick={() => onEnterARProject(latestProject)}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer shadow-lg shadow-emerald-500/25"
+              >
+                <Camera className="w-4 h-4" />
+                <span>👓 Entrar en AR</span>
+              </button>
+              <button
+                onClick={() => onSelectProject(latestProject)}
+                className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl text-xs font-medium border border-slate-800 transition-all cursor-pointer"
+              >
+                <span>Ver 3D (PC)</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Filter Strip & Search Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-xs">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500 mr-1 shrink-0" />
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  selectedCategory === cat
+                    ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
+                    : 'bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
-            Explora proyectos arquitectónicos en AR, VR y PC
-          </h2>
-          <p className="text-sm sm:text-base text-slate-400 leading-relaxed mb-6">
-            Visualiza modelos volumétricos sobre tu mesa física con Passthrough (AR), recorre a escala 1:1 en Realidad Virtual, o inspecciona en tu navegador web.
-          </p>
-
-          {/* Big Featured Action Buttons for Quest 3S */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <button
-              onClick={() => onEnterARProject(latestProject)}
-              className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white px-5 py-3.5 rounded-2xl text-sm font-bold tracking-wide shadow-xl shadow-emerald-500/25 transition-all cursor-pointer"
-            >
-              <Camera className="w-5 h-5" />
-              <span>👓 Entrar en AR (Cámara Passthrough)</span>
-            </button>
-            <button
-              onClick={() => onEnterVRProject(latestProject)}
-              className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-white px-5 py-3.5 rounded-2xl text-sm font-bold tracking-wide shadow-xl shadow-cyan-500/25 transition-all cursor-pointer"
-            >
-              <Glasses className="w-5 h-5" />
-              <span>🥽 Entrar en VR Inmersivo</span>
-            </button>
-            <button
-              onClick={() => onSelectProject(latestProject)}
-              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white px-5 py-3.5 rounded-2xl text-sm font-semibold border border-slate-700/80 transition-all cursor-pointer"
-            >
-              <span>Ver en 3D (PC)</span>
-            </button>
+          {/* Search Input */}
+          <div className="relative w-full sm:w-64">
+            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Buscar proyecto..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-900/80 border border-slate-800 focus:border-cyan-500/60 rounded-xl pl-8.5 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 outline-none transition-all"
+            />
           </div>
         </div>
 
         {/* Project Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onSelect={onSelectProject}
-              onEnterVR={onEnterVRProject}
-              onEnterAR={onEnterARProject}
-            />
-          ))}
-        </div>
-
-        {/* Feature Highlights */}
-        <div className="mt-14 border-t border-slate-800/60 pt-8 grid grid-cols-1 md:grid-cols-3 gap-5 text-xs text-slate-400">
-          <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/60">
-            <h4 className="font-semibold text-slate-200 mb-1 flex items-center gap-2">
-              <Camera className="w-4 h-4 text-emerald-400" />
-              Realidad Aumentada (Passthrough)
-            </h4>
-            <p className="leading-relaxed">
-              Activa la cámara a color del Meta Quest 3S para colocar la maqueta volumétrica directamente en tu mesa o sala de estar.
-            </p>
+        {filteredProjects.length === 0 ? (
+          <div className="py-16 text-center text-slate-500 text-xs">
+            No se encontraron proyectos en la categoría "{selectedCategory}".
           </div>
-          <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/60">
-            <h4 className="font-semibold text-slate-200 mb-1 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-cyan-400" />
-              Modo Maqueta & Escala 1:1
-            </h4>
-            <p className="leading-relaxed">
-              Examina volumetrías en escala de mesa o ingresa al interior para recorrer la estructura a escala real con teleport o joystick.
-            </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+            {filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onSelect={onSelectProject}
+                onEnterVR={onEnterVRProject}
+                onEnterAR={onEnterARProject}
+                onQuickView={(p) => setQuickViewProject(p)}
+              />
+            ))}
           </div>
-          <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/60">
-            <h4 className="font-semibold text-slate-200 mb-1 flex items-center gap-2">
-              <Glasses className="w-4 h-4 text-blue-400" />
-              Optimizado para Quest 3S
-            </h4>
-            <p className="leading-relaxed">
-              Agarrar con el Grip, separar manos para escalar (*pinch-to-scale*), rotar con mandos y menú 3D flotante espacial.
-            </p>
-          </div>
-        </div>
+        )}
       </main>
 
       {/* Footer */}
       <footer className="border-t border-slate-800/60 py-6 text-center text-xs text-slate-500">
-        XR Model Viewer • Immersive 3D Visualization
+        XR Model Viewer • Inmersión Espacial en Meta Quest 3S & PC
       </footer>
+
+      {/* Interactive Quick View Modal (360 Preview + Snapshot Camera) */}
+      <QuickViewModal
+        project={quickViewProject}
+        isOpen={!!quickViewProject}
+        onClose={() => setQuickViewProject(null)}
+        onOpenFullViewer={(p) => {
+          onSelectProject(p);
+          setQuickViewProject(null);
+        }}
+        onEnterAR={(p) => {
+          onEnterARProject(p);
+          setQuickViewProject(null);
+        }}
+        onEnterVR={(p) => {
+          onEnterVRProject(p);
+          setQuickViewProject(null);
+        }}
+        onUpdateThumbnail={handleUpdateThumbnail}
+      />
 
       {/* Floating Scroll Buttons for Meta Quest Laser Pointer Navigation */}
       <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-2 pointer-events-auto">
         <button
           onClick={scrollUp}
-          className="w-12 h-12 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-cyan-500 text-slate-200 hover:text-white flex items-center justify-center shadow-2xl backdrop-blur-md transition-all active:scale-90 cursor-pointer"
+          className="w-11 h-11 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-cyan-500 text-slate-200 hover:text-white flex items-center justify-center shadow-2xl backdrop-blur-md transition-all active:scale-90 cursor-pointer"
           title="Subir página"
         >
-          <ChevronUp className="w-6 h-6" />
+          <ChevronUp className="w-5 h-5" />
         </button>
         <button
           onClick={scrollDown}
-          className="w-12 h-12 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-cyan-500 text-slate-200 hover:text-white flex items-center justify-center shadow-2xl backdrop-blur-md transition-all active:scale-90 cursor-pointer"
+          className="w-11 h-11 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-cyan-500 text-slate-200 hover:text-white flex items-center justify-center shadow-2xl backdrop-blur-md transition-all active:scale-90 cursor-pointer"
           title="Bajar página"
         >
-          <ChevronDown className="w-6 h-6" />
+          <ChevronDown className="w-5 h-5" />
         </button>
       </div>
     </div>

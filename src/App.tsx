@@ -10,6 +10,7 @@ export const App: React.FC = () => {
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isLocalModalOpen, setIsLocalModalOpen] = useState(false);
+  const [catalogKey, setCatalogKey] = useState(0);
 
   // Open in 3D desktop view
   const handleSelectProject = (project: Project, file?: File) => {
@@ -54,11 +55,15 @@ export const App: React.FC = () => {
     setIsCatalogOpen(false);
   };
 
+  const handleUpdateThumbnail = () => {
+    setCatalogKey((k) => k + 1);
+  };
+
   return (
     <div className="w-full min-h-screen bg-slate-950 font-sans text-slate-100">
       {/* Catalog View - Lightweight, fast, full scrolling with zero 3D overhead */}
       {isCatalogOpen ? (
-        <div className="w-full min-h-screen overflow-y-auto">
+        <div key={catalogKey} className="w-full min-h-screen overflow-y-auto">
           <ProjectCatalog
             onSelectProject={handleSelectProject}
             onEnterVRProject={handleEnterVRProject}
@@ -74,6 +79,7 @@ export const App: React.FC = () => {
             localFile={localFile}
             onBackToCatalog={handleBackToCatalog}
             onOpenLocalFileModal={() => setIsLocalModalOpen(true)}
+            onUpdateThumbnail={handleUpdateThumbnail}
           />
         </div>
       ) : null}

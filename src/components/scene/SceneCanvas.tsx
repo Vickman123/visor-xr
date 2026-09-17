@@ -23,19 +23,11 @@ interface SceneCanvasProps {
   onGoHome: () => void;
   frameTrigger: number;
   resetCameraTrigger: number;
+  onRegisterSnapshotTaker?: (taker: () => string | null) => void;
 }
 
 // Inner component inside Canvas to have access to useThree()
-const SceneContent: React.FC<{
-  scene: THREE.Group | null;
-  metrics: ModelMetrics | null;
-  transform: ModelTransform;
-  onTransformChange: (updater: (prev: ModelTransform) => ModelTransform) => void;
-  onResetTransform: () => void;
-  onGoHome: () => void;
-  frameTrigger: number;
-  resetCameraTrigger: number;
-}> = ({
+const SceneContent: React.FC<SceneCanvasProps> = ({
   scene,
   metrics,
   transform,
@@ -44,6 +36,7 @@ const SceneContent: React.FC<{
   onGoHome,
   frameTrigger,
   resetCameraTrigger,
+  onRegisterSnapshotTaker,
 }) => {
   const { camera, gl, scene: threeScene } = useThree();
   const orbitRef = useRef<OrbitControlsImpl | null>(null);
@@ -133,6 +126,21 @@ const SceneContent: React.FC<{
   useEffect(() => {
     if (scene && metrics) frameModel();
   }, [scene]);
+
+  // Expose high-quality snapshot capture function
+  useEffect(() => {
+    if (onRegisterSnapshotTaker) {
+      onRegisterSnapshotTaker(() => {
+        try {
+          gl.render(threeScene, camera);
+          return gl.domElement.toDataURL('image/jpeg', 0.95);
+        } catch (err) {
+          console.error('Failed to take 3D snapshot:', err);
+          return null;
+        }
+      });
+    }
+  }, [gl, threeScene, camera, onRegisterSnapshotTaker]);
 
   const handleSetVRMode = (newMode: VRMode) => {
     setVrMode(newMode);
@@ -247,6 +255,7 @@ export const SceneCanvas: React.FC<SceneCanvasProps> = (props) => {
       gl={{
         antialias: true,
         alpha: true, // Required for WebXR AR camera passthrough
+        preserveDrawingBuffer: true, // Required for instant high-quality snapshots
         powerPreference: 'high-performance',
       }}
       className="w-full h-full bg-transparent"
