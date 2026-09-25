@@ -247,7 +247,7 @@ export const VRFloatingMenu: React.FC<VRFloatingMenuProps> = ({
     <group ref={groupRef} scale={[0.65, 0.65, 0.65]}>
       {/* Back Panel / Handheld Glass Clipboard Base */}
       <mesh position={[0, 0, -0.015]}>
-        <boxGeometry args={[0.58, 0.58, 0.012]} />
+        <boxGeometry args={[0.60, 0.52, 0.012]} />
         <meshStandardMaterial
           color="#090d16"
           roughness={0.4}
@@ -259,25 +259,25 @@ export const VRFloatingMenu: React.FC<VRFloatingMenuProps> = ({
 
       {/* Cyber Neon Cyan Border Accent */}
       <mesh position={[0, 0, -0.018]}>
-        <boxGeometry args={[0.59, 0.59, 0.005]} />
+        <boxGeometry args={[0.61, 0.53, 0.005]} />
         <meshBasicMaterial color={isAR ? '#10b981' : '#06b6d4'} />
       </mesh>
 
       {/* Header Title with Active Mode Badge */}
       <Text
-        position={[0, 0.24, 0.005]}
+        position={[0, 0.21, 0.005]}
         fontSize={0.024}
         color={isAR ? '#34d399' : '#38bdf8'}
         anchorX="center"
         anchorY="middle"
       >
-        {isAR ? '👓 MENÚ XR · REALIDAD AUMENTADA' : '🥽 MENÚ XR · REALIDAD VIRTUAL'}
+        {isAR ? '👓 MENÚ XR · SELECCIÓN Y CONTROLES' : '🥽 MENÚ XR · SELECCIÓN Y CONTROLES'}
       </Text>
 
       {/* Controller Hint */}
       <Text
-        position={[0, 0.21, 0.005]}
-        fontSize={0.013}
+        position={[0, 0.18, 0.005]}
+        fontSize={0.012}
         color="#94a3b8"
         anchorX="center"
         anchorY="middle"
@@ -285,25 +285,25 @@ export const VRFloatingMenu: React.FC<VRFloatingMenuProps> = ({
         Presiona [X] o [Y] en mando izquierdo para ocultar
       </Text>
 
-      {/* Row 1: In-VR Project Switcher */}
-      {projects && projects.length > 1 && onSelectProject && (
-        <group position={[0, 0.14, 0]}>
+      {/* Section 1: PC-Style Prominent Model Switcher */}
+      {projects && projects.length > 0 && onSelectProject && (
+        <group position={[0, 0.10, 0]}>
           <MenuButton
-            position={[-0.19, 0, 0]}
-            width={0.11}
+            position={[-0.21, 0, 0]}
+            width={0.10}
             icon="◀"
             label="Ant."
             onClick={handlePrevProject}
           />
-          {/* Current project badge / label */}
+          {/* Main PC-style Model Badge */}
           <mesh position={[0, 0, 0]}>
-            <boxGeometry args={[0.24, 0.075, 0.015]} />
+            <boxGeometry args={[0.30, 0.075, 0.015]} />
             <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.4} />
           </mesh>
           <Text
             position={[0, 0, 0.012]}
-            fontSize={0.016}
-            maxWidth={0.22}
+            fontSize={0.015}
+            maxWidth={0.28}
             color="#38bdf8"
             anchorX="center"
             anchorY="middle"
@@ -311,8 +311,8 @@ export const VRFloatingMenu: React.FC<VRFloatingMenuProps> = ({
             {activeProjectTitle}
           </Text>
           <MenuButton
-            position={[0.19, 0, 0]}
-            width={0.11}
+            position={[0.21, 0, 0]}
+            width={0.10}
             icon="▶"
             label="Sig."
             onClick={handleNextProject}
@@ -320,67 +320,55 @@ export const VRFloatingMenu: React.FC<VRFloatingMenuProps> = ({
         </group>
       )}
 
-      {/* Row 2: Mode Switch */}
+      {/* Section 2: Mode Switch (Maqueta vs Escala 1:1) */}
       <MenuButton
-        position={[-0.13, 0.05, 0]}
-        icon="🏗️"
-        label="Maqueta"
+        position={[-0.14, 0.01, 0]}
+        width={0.25}
+        icon="🏛️"
+        label="Modo Maqueta"
         active={vrMode === 'maqueta'}
         accentColor={isAR ? '#059669' : '#0ea5e9'}
         onClick={() => onSetVRMode('maqueta')}
       />
       <MenuButton
-        position={[0.13, 0.05, 0]}
+        position={[0.14, 0.01, 0]}
+        width={0.25}
         icon="🚪"
-        label="Escala 1:1"
+        label="Escala Real 1:1"
         active={vrMode === 'escala1_1'}
         accentColor={isAR ? '#059669' : '#0ea5e9'}
         onClick={() => onSetVRMode('escala1_1')}
       />
 
-      {/* Row 3: Locomotion Selection */}
+      {/* Section 3: Spatial Actions (Scale & Reset) */}
       <MenuButton
-        position={[-0.13, -0.04, 0]}
-        icon="📍"
-        label="Teleport"
-        active={locomotionMode === 'teleport'}
-        accentColor={isAR ? '#059669' : '#0ea5e9'}
-        onClick={() => onSetLocomotionMode('teleport')}
-      />
-      <MenuButton
-        position={[0.13, -0.04, 0]}
-        icon="🚶"
-        label="Joystick"
-        active={locomotionMode === 'joystick'}
-        accentColor={isAR ? '#059669' : '#0ea5e9'}
-        onClick={() => onSetLocomotionMode('joystick')}
-      />
-
-      {/* Row 4: Actions (Scale / Reset) */}
-      <MenuButton
-        position={[-0.13, -0.13, 0]}
+        position={[-0.14, -0.08, 0]}
+        width={0.25}
         icon="↔"
         label={`Escala ${currentScale.toFixed(1)}x`}
         onClick={onCycleScale}
       />
       <MenuButton
-        position={[0.13, -0.13, 0]}
+        position={[0.14, -0.08, 0]}
+        width={0.25}
         icon="🔄"
-        label="Reset"
+        label="Reset Posición"
         onClick={onResetTransform}
       />
 
-      {/* Row 5: Navigation & Ocultar */}
+      {/* Section 4: Exit & Hide */}
       <MenuButton
-        position={[-0.13, -0.22, 0]}
+        position={[-0.14, -0.17, 0]}
+        width={0.25}
         icon="🏠"
-        label="Salir a Web"
+        label="Salir a Biblioteca"
         onClick={handleGoHome}
       />
       <MenuButton
-        position={[0.13, -0.22, 0]}
+        position={[0.14, -0.17, 0]}
+        width={0.25}
         icon="❌"
-        label="Ocultar"
+        label="Ocultar Menú"
         accentColor="#64748b"
         onClick={toggleMenu}
       />
