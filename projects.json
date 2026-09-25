@@ -8,27 +8,27 @@
     "category": "Académico"
   },
   {
-    "id": "casa",
-    "name": "Casa Residencial",
-    "description": "Residencia contemporánea de 2 niveles con estructura de hormigón, ventanales panorámicos y terraza.",
-    "thumbnail": "thumbnails/casa.webp",
-    "model": "models/casa.glb",
-    "category": "Residencial"
+    "id": "veterinaria",
+    "name": "Facultad de Medicina Veterinaria y Zootecnia",
+    "description": "Instalaciones académicas y clínicas de la FMVZ UNAM con áreas modulares y quirófanos.",
+    "thumbnail": "thumbnails/veterinaria_preview_thumbnail.png",
+    "model": "models/FINAL VETERINARIA.glb",
+    "category": "Académico"
   },
   {
-    "id": "edificio",
-    "name": "Edificio Corporativo",
-    "description": "Complejo de oficinas de 4 plantas con fachada acristalada continua y núcleo de servicios.",
-    "thumbnail": "thumbnails/edificio.webp",
-    "model": "models/edificio.glb",
-    "category": "Corporativo"
-  },
-  {
-    "id": "laboratorio",
-    "name": "Laboratorio Tecnológico",
-    "description": "Pabellón de investigación y biotecnología con atrio central acristalado y particiones técnicas.",
-    "thumbnail": "thumbnails/laboratorio.webp",
-    "model": "models/laboratorio.glb",
+    "id": "pumaker",
+    "name": "Espacio Puma Maker P5",
+    "description": "Laboratorio y espacio de innovación tecnológica Puma Maker con estaciones de trabajo modulares.",
+    "thumbnail": "thumbnails/pumaker_preview_thumbnail.png",
+    "model": "models/PUMAKER P5.glb",
     "category": "Tecnológico"
+  },
+  {
+    "id": "oficina",
+    "name": "Oficina / Espacio de Trabajo",
+    "description": "Espacio de trabajo y oficinas administrativas con mobiliario y arquitectura corporativa.",
+    "thumbnail": "thumbnails/oficina_preview_thumbnail.png",
+    "model": "models/Oficina.glb",
+    "category": "Corporativo"
   }
 ]
