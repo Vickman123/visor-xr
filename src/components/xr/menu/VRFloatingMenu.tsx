@@ -87,10 +87,10 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 
 export const VRFloatingMenu: React.FC<VRFloatingMenuProps> = ({
   vrMode,
-  locomotionMode,
+  locomotionMode: _locomotionMode,
   isAR = false,
   onSetVRMode,
-  onSetLocomotionMode,
+  onSetLocomotionMode: _onSetLocomotionMode,
   onResetTransform,
   onCycleScale,
   onGoHome,
