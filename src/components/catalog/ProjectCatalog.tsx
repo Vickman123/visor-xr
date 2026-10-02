@@ -18,6 +18,7 @@ import {
   FolderOpen,
   Sun,
   Moon,
+  HardDrive,
 } from 'lucide-react';
 import type { ThemeMode } from '../../App';
 
@@ -26,6 +27,7 @@ interface ProjectCatalogProps {
   onEnterVRProject: (project: Project) => void;
   onEnterARProject: (project: Project) => void;
   onOpenLocalFileModal: () => void;
+  onOpenDriveModal?: () => void;
   theme?: ThemeMode;
   onToggleTheme?: () => void;
 }
@@ -35,6 +37,7 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
   onEnterVRProject,
   onEnterARProject,
   onOpenLocalFileModal,
+  onOpenDriveModal,
   theme = 'dark',
   onToggleTheme,
 }) => {
@@ -300,6 +303,17 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
           ) : (
             /* PC: Clean upload button & Theme Toggle */
             <div className="hidden sm:flex items-center gap-2">
+              {onOpenDriveModal && (
+                <button
+                  onClick={onOpenDriveModal}
+                  className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600/80 to-cyan-600/80 hover:from-blue-500 hover:to-cyan-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-wide border border-cyan-400/40 transition-all active:scale-95 cursor-pointer shadow-sm shadow-cyan-500/20"
+                  title="Abrir modelos 3D directamente desde Google Drive"
+                >
+                  <HardDrive className="w-3.5 h-3.5 text-white" />
+                  <span>Google Drive</span>
+                </button>
+              )}
+
               <button
                 onClick={onOpenLocalFileModal}
                 className="flex items-center gap-1.5 bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold tracking-wide border border-slate-700/80 hover:border-cyan-400/50 transition-all active:scale-95 cursor-pointer shadow-sm"
@@ -382,6 +396,17 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
                   <Glasses className="w-4 h-4" />
                   <span>🥽 Iniciar en VR (Inmersivo)</span>
                 </button>
+
+                {onOpenDriveModal && (
+                  <button
+                    onClick={onOpenDriveModal}
+                    className="flex items-center gap-2 bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold tracking-wide border border-cyan-500/40 transition-all active:scale-95 cursor-pointer shadow-md"
+                    title="Cargar modelos desde tu Google Drive en VR"
+                  >
+                    <HardDrive className="w-4 h-4 text-cyan-400" />
+                    <span>📁 Google Drive</span>
+                  </button>
+                )}
               </>
             ) : (
               <>
@@ -399,6 +424,16 @@ export const ProjectCatalog: React.FC<ProjectCatalogProps> = ({
                   <FolderOpen className="w-4 h-4 text-cyan-400" />
                   <span>+ Cargar modelo local</span>
                 </button>
+                {onOpenDriveModal && (
+                  <button
+                    onClick={onOpenDriveModal}
+                    className="flex items-center gap-2 bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white px-4 py-2.5 rounded-2xl text-xs font-bold tracking-wide border border-cyan-500/40 hover:border-cyan-400 transition-all active:scale-95 cursor-pointer shadow-sm shadow-cyan-500/10"
+                    title="Conectar y explorar modelos en Google Drive"
+                  >
+                    <HardDrive className="w-4 h-4 text-cyan-400" />
+                    <span>Google Drive</span>
+                  </button>
+                )}
               </>
             )}
           </div>

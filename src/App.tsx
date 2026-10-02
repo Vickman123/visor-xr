@@ -3,6 +3,7 @@ import type { Project } from './types';
 import { ProjectCatalog } from './components/catalog/ProjectCatalog';
 import { DesktopViewer } from './components/desktop/DesktopViewer';
 import { LocalFileModal } from './components/catalog/LocalFileModal';
+import { GoogleDriveModal } from './components/gdrive/GoogleDriveModal';
 import { xrStore } from './components/xr/xrStore';
 import { DEFAULT_PROJECTS } from './data/defaultProjects';
 
@@ -17,6 +18,7 @@ export const App: React.FC = () => {
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isLocalModalOpen, setIsLocalModalOpen] = useState(false);
+  const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
   const [catalogKey, setCatalogKey] = useState(0);
 
   const toggleTheme = () => {
@@ -105,6 +107,7 @@ export const App: React.FC = () => {
             onEnterVRProject={handleEnterVRProject}
             onEnterARProject={handleEnterARProject}
             onOpenLocalFileModal={() => setIsLocalModalOpen(true)}
+            onOpenDriveModal={() => setIsDriveModalOpen(true)}
             theme={theme}
             onToggleTheme={toggleTheme}
           />
@@ -136,6 +139,17 @@ export const App: React.FC = () => {
         isOpen={isLocalModalOpen}
         onClose={() => setIsLocalModalOpen(false)}
         onFileSelect={handleLocalFileSelect}
+        onOpenDriveModal={() => {
+          setIsLocalModalOpen(false);
+          setIsDriveModalOpen(true);
+        }}
+      />
+
+      {/* Google Drive Cloud 3D Models Explorer Modal */}
+      <GoogleDriveModal
+        isOpen={isDriveModalOpen}
+        onClose={() => setIsDriveModalOpen(false)}
+        onSelectDriveModel={(project) => handleSelectProject(project)}
       />
     </div>
   );

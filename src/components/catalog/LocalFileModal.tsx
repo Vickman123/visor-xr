@@ -1,17 +1,19 @@
 import React, { useRef, useState } from 'react';
 import type { Project } from '../../types';
-import { UploadCloud, X, CheckCircle2 } from 'lucide-react';
+import { UploadCloud, X, CheckCircle2, HardDrive } from 'lucide-react';
 
 interface LocalFileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onFileSelect: (project: Project, file: File) => void;
+  onOpenDriveModal?: () => void;
 }
 
 export const LocalFileModal: React.FC<LocalFileModalProps> = ({
   isOpen,
   onClose,
   onFileSelect,
+  onOpenDriveModal,
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -115,6 +117,25 @@ export const LocalFileModal: React.FC<LocalFileModalProps> = ({
             <strong className="text-cyan-400">.GLTF</strong>
           </span>
         </div>
+
+        {/* Alternative Google Drive Link */}
+        {onOpenDriveModal && (
+          <div className="mt-4 flex flex-col items-center">
+            <span className="text-[11px] text-slate-500 font-semibold mb-2 uppercase tracking-wider">
+              o si tienes tu modelo en la nube
+            </span>
+            <button
+              onClick={() => {
+                onClose();
+                onOpenDriveModal();
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shadow-sm"
+            >
+              <HardDrive className="w-4 h-4 text-cyan-400" />
+              <span>📁 Explorar archivos en Google Drive</span>
+            </button>
+          </div>
+        )}
 
         {/* Security & Privacy Notice */}
         <div className="mt-5 p-3.5 bg-slate-950/60 border border-slate-800/80 rounded-xl flex items-start gap-3 text-xs text-slate-300">
