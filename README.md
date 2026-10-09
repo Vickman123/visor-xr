@@ -1,5 +1,7 @@
 # XR Model Viewer
 
+https://vickman123.github.io/visor-xr/
+
 **XR Model Viewer** es una aplicación web profesional de visualización 3D y realidad virtual arquitectónica. Desarrollada para **Meta Quest 3S** mediante **WebXR**, funcionando al mismo tiempo con alto rendimiento y controles fluidos en **PC** desde cualquier navegador web moderno.
 
 Es un proyecto 100% estático (sin backend, sin base de datos, sin autenticación) listo para desplegarse en **GitHub Pages**.
